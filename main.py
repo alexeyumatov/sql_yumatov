@@ -5,7 +5,7 @@ import sys
 import sqlite3
 
 
-class MainWindow(QApplication):
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi('main.ui', self)
@@ -20,12 +20,12 @@ class MainWindow(QApplication):
         
     def table_view(self, view):
         model = QSqlTableModel(self, self.db)
-        model.setQuery(QSqlQuery("""SELECT coffee_info.sort-name, roasting.roast-type,
-                                consistency.consistency-type, coffee_info.taste-description, coffee_info.price
-                                coffee_info.coffee-amount, coffee_info.id
+        model.setQuery(QSqlQuery("""SELECT coffee_info.sort_name, roasting.roast_type,
+                                consistency.consistency_type, coffee_info.taste_description, coffee_info.price,
+                                coffee_info.coffee_amount, coffee_info.id
                                 FROM coffee_info
-                                LEFT JOIN roasting ON coffee_info.roast = roasting.roast-id
-                                LEFT JOIN consistency ON coffee_info.consistency = consistensy.id"""))
+                                LEFT JOIN roasting ON coffee_info.roast = roasting.roast_id
+                                LEFT JOIN consistency ON coffee_info.consistency = consistency.id"""))
 
         model.setHeaderData(0, QtCore.Qt.Horizontal, 'Название сорта')
         model.setHeaderData(1, QtCore.Qt.Horizontal, 'Степень обжарки')
