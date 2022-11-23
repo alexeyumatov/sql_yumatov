@@ -15,9 +15,9 @@ class MainWindow(QApplication):
         self.db = QSqlDatabase.addDatabase('QSQLITE')
         self.db.setDatabaseName('coffee.sqlite')
         self.db.open()
-        self.table_view()
+        self.table_view(self.tableView)
         
-    def table_view(self):
+    def table_view(self, view):
         model = QSqlTableModel(self, self.db)
         model.setQuery(QSqlQuery(""""""))
         
