@@ -1,42 +1,50 @@
-from PyQt5 import uic, QtCore
-from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView
-from PyQt5.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery
+from PyQt5 import uic
+from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog
+from db_funcs import table_view, insert_coffee, get_roast_value, get_consistency_value
 import sys
-import sqlite3
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi('main.ui', self)
-        
-        conn = sqlite3.connect('coffee.sqlite')
-        self.cursor = conn.cursor()
-        self.db = QSqlDatabase.addDatabase('QSQLITE')
-        self.db.setDatabaseName('coffee.sqlite')
-        self.db.open()
-        self.table_view(self.tableView)
+        table_view(self, self.tableView)
         self.tableView.setColumnHidden(6, True)
-        
-    def table_view(self, view):
-        model = QSqlTableModel(self, self.db)
-        model.setQuery(QSqlQuery("""SELECT coffee_info.sort_name, roasting.roast_type,
-                                consistency.consistency_type, coffee_info.taste_description, coffee_info.price,
-                                coffee_info.coffee_amount, coffee_info.id
-                                FROM coffee_info
-                                LEFT JOIN roasting ON coffee_info.roast = roasting.roast_id
-                                LEFT JOIN consistency ON coffee_info.consistency = consistency.id"""))
+        self.add_btn.clicked.connect(self.btn_clicked)
+        self.edit_btn.clicked.connect(self.btn_clicked)
 
-        model.setHeaderData(0, QtCore.Qt.Horizontal, 'Название сорта')
-        model.setHeaderData(1, QtCore.Qt.Horizontal, 'Степень обжарки')
-        model.setHeaderData(2, QtCore.Qt.Horizontal, 'Консистенция')
-        model.setHeaderData(3, QtCore.Qt.Horizontal, 'Описание вкуса')
-        model.setHeaderData(4, QtCore.Qt.Horizontal, 'Цена')
-        model.setHeaderData(5, QtCore.Qt.Horizontal, 'Объем упаковки, г.')
+    def btn_clicked(self):
+        if self.sender().text() == 'Добавить запись':
+            status = True
+            dialog = AddEditCoffeeForm(status, self)
+            dialog.exec_()
+        elif self.sender().text() == 'Редактировать запись':
+            status = False
+            dialog = AddEditCoffeeForm(status, self)
+            dialog.exec_()
 
-        model.select()
-        view.setModel(model)
-        view.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+class AddEditCoffeeForm(QDialog):
+    def __init__(self, status, parent=None):
+        super(AddEditCoffeeForm, self).__init__(parent)
+        uic.loadUi('addEditCoffeeForm.ui', self)
+        self.status = status
+        if self.status:
+            self.roasting_cb.addItems(get_roast_value())
+            self.consist_cb.addItems(get_consistency_value())
+            self.ok_pB.clicked.connect(self.add_coffee)
+        else:
+            self.ok_pB.clicked.connect(self.edit_coffee)
+        self.cancel_pB.clicked.connect(self.cancel_btn)
+
+    def add_coffee(self):
+        pass
+
+    def edit_coffee(self):
+        pass
+
+    def cancel_btn(self):
+        self.close()
 
 
 if __name__ == "__main__":
