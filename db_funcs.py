@@ -13,9 +13,10 @@ db.open()
 
 def table_view(self, view):
     model = QSqlTableModel(self, db)
-    model.setQuery(QSqlQuery("""SELECT coffee_info.sort_name, roasting.roast_type,
-                                    consistency.consistency_type, coffee_info.taste_description, coffee_info.price,
-                                    coffee_info.coffee_amount, coffee_info.id
+    model.setQuery(QSqlQuery("""SELECT coffee_info.sort_name, roasting.roast_type, 
+                                    consistency.consistency_type, coffee_info.taste_description,
+                                    coffee_info.price, coffee_info.coffee_amount,
+                                    coffee_info.id
                                     FROM coffee_info
                                     LEFT JOIN roasting ON coffee_info.roast = roasting.roast_id
                                     LEFT JOIN consistency ON coffee_info.consistency = consistency.id"""))
@@ -42,13 +43,39 @@ def get_consistency_value():
     return [el[0] for el in res]
 
 
+def get_item_value(coffee_id):
+    res = cursor.execute("""SELECT coffee_info.sort_name, roasting.roast_type, 
+                                    consistency.consistency_type, coffee_info.taste_description,
+                                    coffee_info.price, coffee_info.coffee_amount, coffee_info.id
+                                    FROM coffee_info
+                                    LEFT JOIN roasting ON coffee_info.roast = roasting.roast_id
+                                    LEFT JOIN consistency ON coffee_info.consistency = consistency.id
+                                    WHERE coffee_info.id == ?""", (coffee_id,)).fetchall()
+    return [elem for el in res for elem in el]
+
+
 def insert_coffee(sort_name, roast, consistency, taste_description, price, coffee_amount):
     try:
         cursor.execute("""INSERT INTO coffee_info(sort_name, roast, consistency, taste_description, 
                         price, coffee_amount)
-                        VALUES(?, (SELECT roast_id FROM roasting WHERE roast-type = ?),
-                        (SELECT id FROM consistecy WHERE consistecy_type = ?), ?, ?, ?)""",
+                        VALUES(?, (SELECT roast_id FROM roasting WHERE roast_type = ?),
+                        (SELECT id FROM consistency WHERE consistency_type = ?), ?, ?, ?)""",
                        (sort_name, roast, consistency, taste_description, price, coffee_amount))
+
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False
+
+
+def update_coffee(sort_name, roast, consistency, taste_description, price, coffee_amount, coffee_id):
+    try:
+        cursor.execute("""UPDATE coffee_info
+        SET sort_name = ?,
+        roast = (SELECT roast_id FROM roasting WHERE roast_type = ?),
+        consistency = (SELECT id FROM consistency WHERE consistency_type = ?),
+        taste_description = ?, price = ?, coffee_amount = ?
+        WHERE id = ?""", (sort_name, roast, consistency, taste_description, price, coffee_amount, coffee_id))
 
         conn.commit()
         return True

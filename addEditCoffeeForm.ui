@@ -165,7 +165,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QLabel" name="status_bar">
+  <widget class="QLabel" name="statusBar">
    <property name="geometry">
     <rect>
      <x>10</x>
